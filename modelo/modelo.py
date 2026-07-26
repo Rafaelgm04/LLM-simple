@@ -7,6 +7,7 @@ from pathlib import Path
 import tratamento as u
 
 import train as train
+
 CAMINHO_DATASET = Path("../Datasets")
 
 
@@ -174,6 +175,9 @@ def main():
     caminho_treino = CAMINHO_DATASET / "treino.txt"
     caminho_validacao = CAMINHO_DATASET / "validacao.txt"
 
+    PASTA_ATUAL = Path(__file__).resolve().parent
+    caminho = PASTA_ATUAL / "pesos" / "modelo.pt"
+
     with open(caminho_treino,"r", encoding="utf-8") as arquivo:
         texto_treino = arquivo.read()
 
@@ -196,10 +200,13 @@ def main():
     }
 
     device = torch.device(
-        "cuda"
-        if torch.cuda.is_available()
-        else "cpu"
+        "cuda" if torch.cuda.is_available() else "cpu"
     )
+    print("Dispositivo utilizado:", device)
+
+    if torch.cuda.is_available():
+        print("GPU:", torch.cuda.get_device_name(0))
+
 
     tamanho_vocab = len(
         tokenizer.char_para_id
@@ -215,6 +222,8 @@ def main():
     )
 
     rede = rede.to(device)
+    loss_train, acc_train = 0, 0
+    loss_test, acc_test   = 0, 0
 
 
     while True:
@@ -224,13 +233,14 @@ def main():
             print("1 - Treinar modelo")
             print("2 - Ver loss")
             print("3 - Testar modelo")
+            print("4 - Carregar modelo")
             print("0 - Sair")
-    
+
             opcao = input("\nEscolha uma opção: ").strip()
 
             
             if opcao == "1":
-                n_epochss = input("n_epochss")
+                n_epochss = int(input("n_epochss: "))
                 loss_train, acc_train = train.train_model(rede,tokens_train,n_epochss=n_epochss,configuracao=configuracao,tokenizer=tokenizer)
                 print("\nTreinamento concluído")
     
@@ -256,7 +266,13 @@ def main():
     
             elif opcao == "3":
                 loss_test, acc_test = train.run_epoch(rede, tokens_test)
-    
+
+            elif opcao == "4":
+                rede, tokenizer = train.carregar_modelo(
+                                caminho=caminho,
+                                dispositivo=device
+                            )
+
             elif opcao == "0":
                 print("\nEncerrando o programa...")
                 break

@@ -73,29 +73,36 @@ def gerar_texto(
     return tokenizer.decodificar(numeros)
 
 def main():
-    dispositivo = torch.device(
-        "cuda"
-        if torch.cuda.is_available()
-        else "cpu"
+    device = torch.device(
+        "cuda" if torch.cuda.is_available() else "cpu"
     )
+    print("Dispositivo utilizado:", device)
 
-    modelo, tokenizer = carregar_modelo(
-        caminho=caminho,
-        dispositivo=dispositivo
-    )
+    if torch.cuda.is_available():
+        print("GPU:", torch.cuda.get_device_name(0))
 
-    prompt = input("Digite o início do texto: ")
+    while True:
 
-    resultado = gerar_texto(
-        modelo=modelo,
-        tokenizer=tokenizer,
-        texto_inicial=prompt,
-        quantidade_tokens=300,
-        temperatura=0.8
-    )
+        opcao = input("\nEscolha uma opção: ").strip()
 
-    print("\nTexto gerado:\n")
-    print(resultado)
+        if opcao == "1":
+            modelo, tokenizer = carregar_modelo(
+                caminho=caminho,
+                dispositivo=device
+            )
+
+            prompt = input("Digite o início do texto: ")
+
+            resultado = gerar_texto(
+                modelo=modelo,
+                tokenizer=tokenizer,
+                texto_inicial=prompt,
+                quantidade_tokens=300,
+                temperatura=0.8
+            )
+
+            print("\nTexto gerado:\n")
+            print(resultado)
 
 
 if __name__ == "__main__":
