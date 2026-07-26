@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import time
 
 from pathlib import Path
 
@@ -190,13 +191,19 @@ def main():
     tokens_test  = torch.tensor(tokenizer.codificar(texto_validacao), dtype=torch.long)
 
 
+    tamanho_bloco     = 128
+    tamanho_embedding = 256
+    numero_cabecas    = 16
+    numero_camadas    = 12
+    dropout           = 0.3
+
     configuracao = {
-        "tamanho_vocab": tokenizer.tamanho_vocab,
-        "tamanho_bloco": 64,
-        "tamanho_embedding": 128,
-        "numero_cabecas": 4,
-        "numero_camadas": 4,
-        "dropout": 0.1
+        "tamanho_vocab":     tokenizer.tamanho_vocab,
+        "tamanho_bloco":     tamanho_bloco,
+        "tamanho_embedding": tamanho_embedding,
+        "numero_cabecas":    numero_cabecas,
+        "numero_camadas":    numero_camadas,
+        "dropout":           dropout
     }
 
     device = torch.device(
@@ -213,12 +220,12 @@ def main():
     )
 
     rede = Modelo(
-        tamanho_vocab=tamanho_vocab,
-        tamanho_bloco=64,
-        tamanho_embedding=128,
-        numero_cabecas=4,
-        numero_camadas=4,
-        dropout=0.1
+        tamanho_vocab     = tamanho_vocab,
+        tamanho_bloco     = tamanho_bloco,
+        tamanho_embedding = tamanho_embedding,
+        numero_cabecas    = numero_cabecas,
+        numero_camadas    = numero_camadas,
+        dropout           = dropout
     )
 
     rede = rede.to(device)
@@ -241,12 +248,20 @@ def main():
             
             if opcao == "1":
                 n_epochss = int(input("n_epochss: "))
+
+                inicio = time.perf_counter()
+
                 loss_train, acc_train = train.train_model(rede,tokens_train,n_epochss=n_epochss,configuracao=configuracao,tokenizer=tokenizer)
+
+                fim         = time.perf_counter()
+                tempo_total = fim - inicio
+
                 print("\nTreinamento concluído")
+                print(f"Tempo: {tempo_total:.2f} segundos")
     
             elif opcao == "2":
                 print(
-                    f"Perda média treino: {loss_train:.4f}"
+                    f"loss média treino: {loss_train:.4f}"
                 )
                 
                 print(
@@ -256,7 +271,7 @@ def main():
                 print("\nResultado da validação")
                 print(
 
-                    f"Perda: {loss_test:.4f}"
+                    f"loss: {loss_test:.4f}"
                 )
 
                 print(
@@ -265,8 +280,14 @@ def main():
 
     
             elif opcao == "3":
+                inicio = time.perf_counter()
+
                 loss_test, acc_test = train.run_epoch(rede, tokens_test)
 
+                fim         = time.perf_counter()
+                tempo_total = fim - inicio
+
+                print(f"Tempo: {tempo_total:.2f} segundos")
             elif opcao == "4":
                 rede, tokenizer = train.carregar_modelo(
                                 caminho=caminho,

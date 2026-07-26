@@ -1,7 +1,7 @@
 import torch
 from pathlib import Path
 import torch.nn.functional as F
-
+import time
 from modelo import Modelo
 from train import carregar_modelo
 
@@ -86,6 +86,7 @@ def main():
         opcao = input("\nEscolha uma opção: ").strip()
 
         if opcao == "1":
+
             modelo, tokenizer = carregar_modelo(
                 caminho=caminho,
                 dispositivo=device
@@ -93,6 +94,8 @@ def main():
 
             prompt = input("Digite o início do texto: ")
 
+            inicio = time.perf_counter()
+            
             resultado = gerar_texto(
                 modelo=modelo,
                 tokenizer=tokenizer,
@@ -100,6 +103,12 @@ def main():
                 quantidade_tokens=300,
                 temperatura=0.8
             )
+            fim = time.perf_counter()
+
+            tempo_total = fim - inicio
+
+            print(f"Tempo: {tempo_total:.2f} segundos")
+
 
             print("\nTexto gerado:\n")
             print(resultado)
