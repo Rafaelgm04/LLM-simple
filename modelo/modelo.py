@@ -216,8 +216,6 @@ def main():
 
     rede = rede.to(device)
 
-    loss_train, acc_train = 0
-    loss_test, acc_test   = 0
 
     while True:
             print("\n==========================")
@@ -232,7 +230,8 @@ def main():
 
             
             if opcao == "1":
-                loss_train, acc_train = train.train_model(rede,tokens_train,n_epochss=1000)
+                n_epochss = input("n_epochss")
+                loss_train, acc_train = train.train_model(rede,tokens_train,n_epochss=n_epochss,configuracao=configuracao,tokenizer=tokenizer)
                 print("\nTreinamento concluído")
     
             elif opcao == "2":

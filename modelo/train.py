@@ -1,15 +1,19 @@
 import torch
 from tqdm import tqdm
 import modelo as M
+from pathlib import Path
 
 import tratamento as u
 
-def salvar_modelo(
-    caminho,
-    modelo,
-    tokenizer,
-    configuracao
-):
+PASTA_ATUAL = Path(__file__).resolve().parent
+caminho = PASTA_ATUAL / "pesos" / "modelo.pt"
+
+def salvar_modelo(caminho, modelo, tokenizer, configuracao):
+    caminho = Path(caminho)
+
+    # Cria a pasta "pesos" caso ainda não exista
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+
     checkpoint = {
         "pesos_modelo": modelo.state_dict(),
         "caracteres": tokenizer.caracteres,
@@ -18,7 +22,7 @@ def salvar_modelo(
 
     torch.save(checkpoint, caminho)
 
-    print(f"Modelo salvo em: {caminho}")
+    print(f"\nModelo salvo em: {caminho.resolve()}")
 
 def carregar_modelo(caminho, dispositivo):
     checkpoint = torch.load(
@@ -140,10 +144,10 @@ def train_model(
         print("epochs: ",epochs)
         print("loss: ",f"{loss.item():.4f}")
 
-        if configuracao != None:
-            if epochs % 1000 == 0 and epochs > 0:
+        if configuracao is not None and tokenizer is not None:
+            if (epochs + 1) % 1000 == 0:
                 salvar_modelo(
-                    caminho=f"mini_llm_passo_{epochs}.pth",
+                    caminho=caminho,
                     modelo=modelo,
                     tokenizer=tokenizer,
                     configuracao=configuracao
@@ -152,6 +156,14 @@ def train_model(
 
     loss_media = sum(losss) / len(losss)
     acuracia_media = sum(acuracias) / len(acuracias)
+
+    if configuracao is not None and tokenizer is not None:
+        salvar_modelo(
+            caminho=caminho,
+            modelo=modelo,
+            tokenizer=tokenizer,
+            configuracao=configuracao
+        )
 
     return loss_media, acuracia_media
 
